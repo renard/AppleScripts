@@ -7,7 +7,7 @@ Copyright © 2010 Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 Author: Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 Keywords: Safari, tabs
 Created: 2012-08-21
-Last changed: 2012-08-22 18:39:39
+Last changed: 2012-08-26 17:12:14
 Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 
 Commentary:
@@ -25,7 +25,13 @@ This script is meant to be run with an Automator Application Service.
 - Select the "Service" item.
 - Assign a keyboard shortcut to the "Find Safari Tab" Service.
 
-*)
+
+Known bugs:
+
+- "set tabURL to URL of (tab tabidx of window winidx) of window winidx" does
+  not work when safari is is fullscreen mode.
+
+  *)
 
 on run {input, parameters}
 	tell application "Safari"
@@ -40,20 +46,19 @@ on run {input, parameters}
 		set text_list to {}
 		set sep to " "
 		
-		repeat with w in every window
-			try
-				set tablist to every tab of w
-			on error errmsg
-				set tablist to false
-			end try
+		repeat with winidx from (count windows) to 1 by -1
 			
-			repeat with t in tablist
-				set tabName to name of t
-				set tabURL to URL of t
+			repeat with tabidx from (count of tabs of window winidx) to 1 by -1
+				set tabName to name of (tab tabidx of window winidx)
+				try
+					set tabURL to URL of (tab tabidx of window winidx) of window winidx
+				on error errmes
+					set tabURL to ""
+				end try
 				if (searchpat is in tabURL) then
-					set end of text_list to tabURL & sep & (id of w as string) & sep & (index of t as string)
+					set end of text_list to tabURL & sep & (id of window winidx as string) & sep & (index of (tab tabidx of window winidx) as string)
 				else if (searchpat is in tabName) then
-					set end of text_list to tabName & sep & (id of w as string) & sep & (index of t as string)
+					set end of text_list to tabName & sep & (id of window winidx as string) & sep & (index of (tab tabidx of window winidx) as string)
 				end if
 			end repeat
 		end repeat
